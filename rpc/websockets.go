@@ -592,6 +592,7 @@ func (api *pubSubAPI) subscribeLogs(wsConn *wsConn, subID rpc.ID, extra interfac
 
 			err := wsConn.WriteJSON(res)
 			if err != nil {
+				api.logger.Error("error writing header, will drop peer", "error", err.Error())
 				try(func() {
 					if err != websocket.ErrCloseSent {
 						_ = wsConn.Close()
