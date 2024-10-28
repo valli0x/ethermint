@@ -413,9 +413,10 @@ type Header struct {
 }
 
 func (api *pubSubAPI) subscribeNewHeads(wsConn *wsConn, subID rpc.ID) (context.CancelFunc, error) {
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(api.cancelContext)
+
 	//nolint: errcheck
-	go api.events.HeaderStream().Subscribe(api.cancelContext, func(headers []stream.RPCHeader, _ int) error {
+	go api.events.HeaderStream().Subscribe(ctx, func(headers []stream.RPCHeader, _ int) error {
 		for _, header := range headers {
 			h := header.EthHeader
 			var enc Header
@@ -571,9 +572,9 @@ func (api *pubSubAPI) subscribeLogs(wsConn *wsConn, subID rpc.ID, extra interfac
 		}
 	}
 
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(api.cancelContext)
 	//nolint: errcheck
-	go api.events.LogStream().Subscribe(api.cancelContext, func(txLogs []*ethtypes.Log, _ int) error {
+	go api.events.LogStream().Subscribe(ctx, func(txLogs []*ethtypes.Log, _ int) error {
 		logs := rpcfilters.FilterLogs(txLogs, crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
 		if len(logs) == 0 {
 			return nil
@@ -607,9 +608,9 @@ func (api *pubSubAPI) subscribeLogs(wsConn *wsConn, subID rpc.ID, extra interfac
 }
 
 func (api *pubSubAPI) subscribePendingTransactions(wsConn *wsConn, subID rpc.ID) (context.CancelFunc, error) {
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(api.cancelContext)
 	//nolint: errcheck
-	go api.events.PendingTxStream().Subscribe(api.cancelContext, func(items []common.Hash, _ int) error {
+	go api.events.PendingTxStream().Subscribe(ctx, func(items []common.Hash, _ int) error {
 		for _, hash := range items {
 			// write to ws conn
 			res := &SubscriptionNotification{
