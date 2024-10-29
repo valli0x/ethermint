@@ -86,7 +86,9 @@ type websocketsServer struct {
 	logger   log.Logger
 }
 
-func NewWebsocketsServer(ctx context.Context, clientCtx client.Context, logger log.Logger, stream *stream.RPCStream, cfg *config.Config) WebsocketsServer {
+func NewWebsocketsServer(
+	ctx context.Context, clientCtx client.Context, logger log.Logger, stream *stream.RPCStream, cfg *config.Config,
+) WebsocketsServer {
 	logger = logger.With("api", "websocket-server")
 	_, port, _ := net.SplitHostPort(cfg.JSONRPC.Address)
 
