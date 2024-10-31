@@ -133,7 +133,24 @@ func StartJSONRPC(srvCtx *server.Context,
 
 	g.Go(func() error {
 		srvCtx.Logger.Info("Starting JSON-RPC server", "address", config.JSONRPC.Address)
-		if err := httpSrv.Serve(ln); err != nil {
+		errCh := make(chan error)
+		go func() {
+			errCh <- httpSrv.Serve(ln)
+		}()
+
+		// Start a blocking select to wait for an indication to stop the server or that
+		// the server failed to start properly.
+		select {
+		case <-ctx.Done():
+			// The calling process canceled or closed the provided context, so we must
+			// gracefully stop the JSON-RPC server.
+			logger.Info("stopping JSON-RPC server...", "address", config.JSONRPC.Address)
+			if err := httpSrv.Shutdown(context.Background()); err != nil {
+				logger.Error("failed to shutdown JSON-RPC server", "error", err.Error())
+			}
+			return ln.Close()
+
+		case err := <-errCh:
 			if err == http.ErrServerClosed {
 				close(httpSrvDone)
 			}
@@ -141,7 +158,6 @@ func StartJSONRPC(srvCtx *server.Context,
 			srvCtx.Logger.Error("failed to start JSON-RPC server", "error", err.Error())
 			return err
 		}
-		return nil
 	})
 
 	srvCtx.Logger.Info("Starting JSON WebSocket server", "address", config.JSONRPC.WsAddress)
