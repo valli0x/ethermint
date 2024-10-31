@@ -16,6 +16,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -47,7 +48,7 @@ type AppWithPendingTxStream interface {
 }
 
 // StartJSONRPC starts the JSON-RPC server
-func StartJSONRPC(srvCtx *server.Context,
+func StartJSONRPC(ctx context.Context, srvCtx *server.Context,
 	clientCtx client.Context,
 	g *errgroup.Group,
 	config *config.Config,
@@ -162,7 +163,7 @@ func StartJSONRPC(srvCtx *server.Context,
 
 	srvCtx.Logger.Info("Starting JSON WebSocket server", "address", config.JSONRPC.WsAddress)
 
-	wsSrv := rpc.NewWebsocketsServer(clientCtx, srvCtx.Logger, rpcStream, config)
+	wsSrv := rpc.NewWebsocketsServer(ctx, clientCtx, srvCtx.Logger, rpcStream, config)
 	wsSrv.Start()
 	return httpSrv, httpSrvDone, nil
 }

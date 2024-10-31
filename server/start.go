@@ -464,7 +464,7 @@ func startInProcess(svrCtx *server.Context, clientCtx client.Context, opts Start
 		defer apiSrv.Close()
 	}
 
-	clientCtx, httpSrv, httpSrvDone, err := startJSONRPCServer(svrCtx, clientCtx, g, config, genDocProvider, idxer, app)
+	clientCtx, httpSrv, httpSrvDone, err := startJSONRPCServer(ctx, svrCtx, clientCtx, g, config, genDocProvider, idxer, app)
 	if httpSrv != nil {
 		defer func() {
 			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
@@ -650,6 +650,7 @@ func startAPIServer(
 }
 
 func startJSONRPCServer(
+	stdCtx context.Context,
 	svrCtx *server.Context,
 	clientCtx client.Context,
 	g *errgroup.Group,
@@ -675,7 +676,7 @@ func startJSONRPCServer(
 
 	ctx = clientCtx.WithChainID(genDoc.ChainID)
 	g.Go(func() error {
-		httpSrv, httpSrvDone, err = StartJSONRPC(svrCtx, clientCtx, g, &config, idxer, txApp)
+		httpSrv, httpSrvDone, err = StartJSONRPC(stdCtx, svrCtx, clientCtx, g, &config, idxer, txApp)
 		return err
 	})
 	return
