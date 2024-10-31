@@ -149,7 +149,7 @@ func StartJSONRPC(ctx context.Context, srvCtx *server.Context,
 			if err := httpSrv.Shutdown(context.Background()); err != nil {
 				logger.Error("failed to shutdown JSON-RPC server", "error", err.Error())
 			}
-			return ln.Close()
+			return err
 
 		case err := <-errCh:
 			if err == http.ErrServerClosed {
